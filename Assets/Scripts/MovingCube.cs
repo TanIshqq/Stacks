@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MovingCube : MonoBehaviour {
     
@@ -18,6 +19,7 @@ public class MovingCube : MonoBehaviour {
         }
         CurrentCube = this;
         GetComponent<Renderer>().material.color = GetRandomColor();
+        transform.localScale = new Vector3(LastCube.transform.localScale.x, transform.localScale.y, LastCube.transform.localScale.z);
     }
 
     private Color GetRandomColor()
@@ -29,6 +31,11 @@ public class MovingCube : MonoBehaviour {
     {
         movingspeed = 0;
         float hangover = transform.position.z - LastCube.transform.position.z;
+        if(Mathf.Abs(hangover)>= LastCube.transform.localScale.z){
+            LastCube = null;
+            CurrentCube = null;
+            SceneManager.LoadScene(0);
+        }
         float direction = hangover > 0 ? 1f : -1f;
         SplitCubeZ(hangover,direction);
     }
@@ -42,16 +49,16 @@ public class MovingCube : MonoBehaviour {
         transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, newZsize);
         transform.position = new Vector3(transform.position.x, transform.position.y, newZposition);
 
-        float cubeEdge = transform.position.z - newZsize / (2f*direction);
-        float fallingCubeZPosition = cubeEdge + fallingBlockSize / (2f*direction);
-        SpawnDropCube(fallingCubeZPosition,fallingBlockSize);
+        float cubeEdge = transform.position.z + (newZsize / 2f * direction);
+        float fallingBlockZPosition = cubeEdge + (fallingBlockSize / 2f * direction);
+        SpawnDropCube(fallingBlockZPosition,fallingBlockSize);
     }
 
-    private void SpawnDropCube(float fallingCubeZPosition, float fallingBlockSize)
+    private void SpawnDropCube(float fallingBlockZPosition, float fallingBlockSize)
     {
         var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, fallingBlockSize);
-        cube.transform.position = new Vector3(transform.position.x, transform.position.y, fallingCubeZPosition);
+        cube.transform.position = new Vector3(transform.position.x, transform.position.y, fallingBlockZPosition);
         cube.AddComponent<Rigidbody>();
         cube.GetComponent<Renderer>().material.color = GetComponent<Renderer>().material.color;
         Destroy(cube.gameObject, 1f);
